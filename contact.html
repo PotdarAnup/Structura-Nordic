@@ -56,14 +56,35 @@
     scrolled:false,
     submitted:false,
     sending:false,
+    error:false,
     form:{name:'',email:'',company:'',service:'',message:''},
     t(e,s,d,i){const v={en:e,sv:s,de:d,it:i};return v[this.lang]??e},
     setLang(l){this.lang=l;localStorage.setItem('sn-lang',l)},
     async handleSubmit(){
       this.sending=true;
-      await new Promise(r=>setTimeout(r,1200));
+      this.error=false;
+      try {
+        const res = await fetch('https://api.web3forms.com/submit',{
+          method:'POST',
+          headers:{'Content-Type':'application/json','Accept':'application/json'},
+          body:JSON.stringify({
+            access_key:'2b3bb7fe-e1d3-4253-a5cf-471eb1891472',
+            subject:'New Enquiry — Structura Nordic AB',
+            from_name:'Structura Nordic AB Website',
+            name:this.form.name,
+            email:this.form.email,
+            company:this.form.company,
+            service:this.form.service,
+            message:this.form.message
+          })
+        });
+        const data = await res.json();
+        if(data.success){this.submitted=true;}
+        else{this.error=true;}
+      } catch(e){
+        this.error=true;
+      }
       this.sending=false;
-      this.submitted=true;
     }
   }"
   x-init="window.addEventListener('scroll',()=>{scrolled=window.scrollY>60})"
@@ -155,7 +176,7 @@
           </div>
           <h3 class="text-xl font-heading font-extrabold text-navy-900" x-text="t('Message Sent!','Meddelande Skickat!','Nachricht gesendet!','Messaggio inviato!')"></h3>
           <p class="mt-2 text-slate-600 text-sm" x-text="t('Thank you for reaching out. We\'ll get back to you within one business day.','Tack för att du hörde av dig. Vi återkommer inom en arbetsdag.','Vielen Dank für Ihre Nachricht. Wir melden uns innerhalb eines Werktages.','Grazie per averci contattato. Vi risponderemo entro un giorno lavorativo.')"></p>
-          <button @click="submitted=false;form={name:'',email:'',company:'',service:'',message:''}" class="mt-6 px-5 py-2.5 bg-navy-800 text-white text-sm font-semibold rounded-full hover:bg-navy-700 transition-colors cursor-pointer" x-text="t('Send Another','Skicka Igen','Weitere Nachricht senden','Invia un\'altra')"></button>
+          <button @click="submitted=false;error=false;form={name:'',email:'',company:'',service:'',message:''}" class="mt-6 px-5 py-2.5 bg-navy-800 text-white text-sm font-semibold rounded-full hover:bg-navy-700 transition-colors cursor-pointer" x-text="t('Send Another','Skicka Igen','Weitere Nachricht senden','Invia un\'altra')"></button>
         </div>
 
         <!-- Form -->
@@ -209,6 +230,7 @@
             <svg x-show="!sending" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
           </button>
           <p class="text-xs text-slate-400" x-text="t('* Required fields. We respond within 1 business day.','* Obligatoriska fält. Vi svarar inom 1 arbetsdag.','* Pflichtfelder. Wir antworten innerhalb von 1 Werktag.','* Campi obbligatori. Rispondiamo entro 1 giorno lavorativo.')"></p>
+          <p x-show="error" x-transition class="text-red-500 text-xs mt-1" x-text="t('Something went wrong. Please try again or email us at info@structuranordic.se.','Något gick fel. Försök igen eller maila info@structuranordic.se.','Etwas ist schiefgelaufen. Bitte erneut versuchen oder an info@structuranordic.se schreiben.','Qualcosa è andato storto. Riprova o scrivi a info@structuranordic.se.')"></p>
         </form>
       </div>
 
